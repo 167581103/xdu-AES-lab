@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 public class Server {
@@ -28,21 +29,25 @@ public class Server {
 
             // 生成服务端的密钥对
             KeyPair serverKeyPair = keyPairGenerator.generateKeyPair();
+            // 公钥B
             PublicKey serverPublicKey = serverKeyPair.getPublic();
+            // 私钥b
             PrivateKey serverPrivateKey = serverKeyPair.getPrivate();
 
-            // 发送服务端的公钥给客户端
+            // 发送服务端的公钥B给客户端
+            System.out.println("1. server发送公钥B");
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.writeObject(serverPublicKey.getEncoded());
 
-            // 接收客户端的公钥
+            // 接收客户端的公钥A
+            System.out.println("4. server接收公钥A");
             ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             byte[] clientPublicKeyBytes = (byte[]) inputStream.readObject();
             X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(clientPublicKeyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("DH");
             PublicKey clientPublicKey = keyFactory.generatePublic(x509EncodedKeySpec);
 
-            // 服务端计算共享密钥
+            // 服务端计算共享密钥K
             KeyAgreement serverKeyAgreement = KeyAgreement.getInstance("DH");
             serverKeyAgreement.init(serverPrivateKey);
             serverKeyAgreement.doPhase(clientPublicKey, true);
@@ -50,15 +55,18 @@ public class Server {
 
             // 从共享密钥中提取 AES 密钥
             SecretKey serverAesKey = new SecretKeySpec(serverSharedSecret, 0, 16, "AES");
+            System.out.println("server计算共享密钥K："+ Arrays.toString(serverAesKey.getEncoded()));
 
             // 接收加密后的文件内容
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
             int encryptedLength = dataInputStream.readInt();
             byte[] encryptedData = new byte[encryptedLength];
             dataInputStream.readFully(encryptedData);
+            System.out.println("接收文件内容："+new String(encryptedData));
 
             // 解密文件内容
             String decryptedText = decrypt(new String(encryptedData, StandardCharsets.UTF_8), serverAesKey);
+            System.out.println("解密文件内容："+decryptedText);
 
             // 将解密后的内容保存到文件
             try (FileWriter writer = new FileWriter("received_file.txt")) {

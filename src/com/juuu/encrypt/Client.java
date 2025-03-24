@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 public class Client {
@@ -27,21 +28,25 @@ public class Client {
 
             // 生成客户端的密钥对
             KeyPair clientKeyPair = keyPairGenerator.generateKeyPair();
+            // 公钥A
             PublicKey clientPublicKey = clientKeyPair.getPublic();
+            // 私钥a
             PrivateKey clientPrivateKey = clientKeyPair.getPrivate();
 
-            // 接收服务端的公钥
+            // 接收服务端的公钥B
+            System.out.println("2. client接收公钥B");
             ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             byte[] serverPublicKeyBytes = (byte[]) inputStream.readObject();
             X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(serverPublicKeyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("DH");
             PublicKey serverPublicKey = keyFactory.generatePublic(x509EncodedKeySpec);
 
-            // 发送客户端的公钥给服务端
+            // 发送客户端的公钥A给服务端
+            System.out.println("3. client发送公钥A");
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.writeObject(clientPublicKey.getEncoded());
 
-            // 客户端计算共享密钥
+            // 客户端计算共享密钥K
             KeyAgreement clientKeyAgreement = KeyAgreement.getInstance("DH");
             clientKeyAgreement.init(clientPrivateKey);
             clientKeyAgreement.doPhase(serverPublicKey, true);
@@ -49,12 +54,15 @@ public class Client {
 
             // 从共享密钥中提取 AES 密钥
             SecretKey clientAesKey = new SecretKeySpec(clientSharedSecret, 0, 16, "AES");
+            System.out.println("client计算共享密钥K："+ Arrays.toString(clientAesKey.getEncoded()));
 
             // 读取文件内容
             String fileContent = readFile(FILE_PATH);
+            System.out.println("读取文件内容："+fileContent);
 
             // 加密文件内容
             String encryptedText = encrypt(fileContent, clientAesKey);
+            System.out.println("加密文件内容："+encryptedText);
 
             // 发送加密后的文件内容
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());

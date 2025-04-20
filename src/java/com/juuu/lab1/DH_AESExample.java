@@ -1,4 +1,4 @@
-package com.juuu.encrypt;
+package com.juuu.lab1;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
@@ -7,7 +7,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class DH_AESExample {

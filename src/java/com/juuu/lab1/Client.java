@@ -1,4 +1,4 @@
-package com.juuu.encrypt;
+package com.juuu.lab1;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;

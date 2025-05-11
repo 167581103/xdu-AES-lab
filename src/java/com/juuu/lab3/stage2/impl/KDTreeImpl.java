@@ -1,55 +1,50 @@
-package com.juuu.lab3.stage2.Impl;
+package com.juuu.lab3.stage2.impl;
 
+import com.juuu.lab3.stage1.OPE;
 import com.juuu.lab3.stage2.KDNode;
 import com.juuu.lab3.stage2.KDTree;
 import com.juuu.lab3.stage2.Point;
-import com.juuu.lab3.stage2.util.EncryptUtil;
 
-import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.Scanner;
 
 /**
- * 基于AES实现的加密KD树
+ * KD树
  */
 public class KDTreeImpl implements KDTree {
     private KDNode root;
     private final int k;  // 数据维度
-    private final SecretKey secretKey;
 
-    public KDTreeImpl(Integer dimension, List<Point> points, SecretKey secretKey) {
+    public KDTreeImpl(Integer dimension, List<Point> points) {
         // 通过点集构建KD树
         this.k = dimension;
-        this.secretKey = secretKey;
-        // 预处理，将点集转换为加密值
-        points.stream().map(point -> EncryptUtil.encrypt(point, secretKey)).collect(Collectors.toList()).forEach(this::insert);
+        points.stream().forEach(this::insert);
     }
 
     @Override
-    public void insert(String pointStr) {
+    public void insert(Point point) {
         // 从根结点插入
-        this.root = insertRec(root, pointStr, 0);
+        this.root = insertRec(root, point, 0);
     }
 
     /**
      * 递归地根据当前分割维度比较数据点，决定插入到左子树或右子树：
      * @param node
-     * @param pointStr
+     * @param point
      * @param depth
      * @return
      */
-    private KDNode insertRec(KDNode node, String pointStr, int depth) {
-        if (node == null) return new KDNode(pointStr, depth % k, secretKey);
-
-        Point point = EncryptUtil.fromEncryptedString(pointStr, secretKey);
+    private KDNode insertRec(KDNode node, Point point, int depth) {
+        if (node == null) return new KDNode(point, depth % k);
         int currentDimension = node.splitDimension;
         if (point.getCoordinate(currentDimension) < node.point.getCoordinate(currentDimension)) {
             // 要插入的点在分割维度上小于树上当前点，应该往左走
-            node.left = insertRec(node.left, pointStr ,depth + 1);
+            node.left = insertRec(node.left, point ,depth + 1);
         } else {
             // 要插入的点在分割维度上大于树上当前点，应该往右走
-            node.right = insertRec(node.right, pointStr, depth + 1);
+            node.right = insertRec(node.right, point, depth + 1);
         }
         return node;
     }
@@ -61,8 +56,8 @@ public class KDTreeImpl implements KDTree {
 
 
     @Override
-    public List<String> rangeSearch(Point lowerBound, Point upperBound) {
-        List<String> res = new ArrayList<>();
+    public List<Point> rangeSearch(Point lowerBound, Point upperBound) {
+        List<Point> res = new ArrayList<>();
         rangeSearchRec(root, lowerBound, upperBound, res);
         return res;
     }
@@ -74,7 +69,7 @@ public class KDTreeImpl implements KDTree {
      * @param upperBound
      * @param result
      */
-    private void rangeSearchRec(KDNode node, Point lowerBound, Point upperBound, List<String> result) {
+    private void rangeSearchRec(KDNode node, Point lowerBound, Point upperBound, List<Point> result) {
         if (node == null) return;
 
         // 检查node是否在范围内
@@ -85,7 +80,7 @@ public class KDTreeImpl implements KDTree {
                 break;
             }
         }
-        if (inRange) result.add(node.pointStr);
+        if (inRange) result.add(node.point);
 
         int currentDimension = node.splitDimension;
         // 递归搜索左子树（如果可能包含结果）
@@ -96,5 +91,27 @@ public class KDTreeImpl implements KDTree {
         if (upperBound.getCoordinate(currentDimension) >= node.point.getCoordinate(currentDimension)) {
             rangeSearchRec(node.right, lowerBound, upperBound, result);
         }
+    }
+
+    public static void main(String[] args) {
+        final Integer DIMENSION = 2;
+        // 从NE数据集读取点集
+        List<Point> points = new ArrayList<>();
+        Scanner in = new Scanner(Objects.requireNonNull(KDTreeImpl.class.getClassLoader().getResourceAsStream("NE.txt")));
+        while(in.hasNextDouble()) {
+            double[] coordinates = new double[DIMENSION];
+            for (int i=0;i<DIMENSION;i++) {
+                coordinates[i] = in.nextDouble();
+            }
+            points.add(new Point(coordinates));
+        }
+        // TODO 对点集进行预处理，将点集通过OPE映射为保序性密文，后续基于保序性密文计算
+        // 通过点集构建二维数据下的KDTree
+        KDTree kdTree = new KDTreeImpl(DIMENSION, points);
+        // 通过KDTree实现范围查询
+        List<Point> points1 = kdTree.rangeSearch(new Point(new double[]{0.1, 0.2}), new Point(new double[]{0.2, 0.3}));
+        System.out.println(points1);
+
+        // 通过KDTree实现最近邻查询
     }
 }

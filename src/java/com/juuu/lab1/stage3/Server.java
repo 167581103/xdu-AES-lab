@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/java/com/juuu/lab1/Server.java
-package com.juuu.lab1;
-========
-package java.com.juuu.lab1.stage3;
->>>>>>>> origin/master:src/java/com/juuu/lab1/stage3/Server.java
+package com.juuu.lab1.stage3;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;

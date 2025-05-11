@@ -1,4 +1,4 @@
-package com.juuu.lab3.stage2;
+package com.juuu.lab3.stage3;
 
 /**
  * 点类

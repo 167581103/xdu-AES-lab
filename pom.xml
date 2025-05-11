@@ -44,6 +44,11 @@
             <systemPath>${pom.basedir}/lib/jpbc-plaf-2.0.0.jar</systemPath>
             <scope>system</scope>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+        </dependency>
     </dependencies>
 
     <!-- 构建配置 -->

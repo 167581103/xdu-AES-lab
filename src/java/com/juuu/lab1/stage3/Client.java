@@ -1,4 +1,4 @@
-package com.juuu.encrypt;
+package java.com.juuu.lab1.stage3;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
@@ -16,7 +16,7 @@ import java.util.Base64;
 public class Client {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int PORT = 12345;
-    private static final String FILE_PATH = "D:/test.txt";
+    private static final String FILE_PATH = "test";
 
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, PORT)) {
@@ -80,7 +80,11 @@ public class Client {
     // 读取文件内容
     public static String readFile(String filePath) throws IOException {
         StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        // 获取类加载器
+        ClassLoader classLoader = Client.class.getClassLoader();
+        // 从类路径获取文件输入流
+        try (InputStream inputStream = classLoader.getResourceAsStream(filePath);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");

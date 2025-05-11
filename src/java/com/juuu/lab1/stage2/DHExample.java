@@ -1,4 +1,4 @@
-package com.juuu.encrypt;
+package com.juuu.lab1.stage2;
 
 import java.math.BigInteger;
 import java.util.Random;

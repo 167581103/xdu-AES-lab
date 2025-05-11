@@ -1,13 +1,11 @@
-package com.juuu.encrypt;
+package com.juuu.lab1.stage1;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class AESExample {
+public class AES {
 
     // 加密方法
     public static String encrypt(String plainText, String key) throws Exception {

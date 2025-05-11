@@ -1,4 +1,4 @@
-package com.juuu.lab1;
+package com.juuu.lab1.stage2;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;

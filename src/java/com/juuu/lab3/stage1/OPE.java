@@ -34,23 +34,38 @@ public class OPE {
      * 保序加密方法，加密整个数据集，返回整个数据集
      */
     public List<EncryptedData> encrypt(List<BigDecimal> dataSet) {
+        if (dataSet.isEmpty()) {
+            throw new IllegalArgumentException("数据集不能为空");
+        }
+
+        // 复制并排序数据集
+        List<BigDecimal> sortedData = new ArrayList<>(dataSet);
+        sortedData.sort(BigDecimal::compareTo);
+
         // 计算敏感性Sens
-        BigDecimal sens = dataSet.stream().max(BigDecimal::compareTo).orElseThrow(()-> new IllegalArgumentException("数据集不能为空"));
-        for (BigDecimal a : dataSet) {
-            for (BigDecimal b : dataSet) {
-                if (!a.equals(b)) {
-                    sens = sens.min(a.subtract(b).abs());
-                }
+        BigDecimal sens = null;
+        for (int i = 0; i < sortedData.size() - 1; i++) {
+            BigDecimal diff = sortedData.get(i + 1).subtract(sortedData.get(i)).abs();
+            if (sens == null || diff.compareTo(sens) < 0) {
+                sens = diff;
             }
         }
+
+        // 如果所有元素都相同，设置一个默认的小值作为sens
+        if (sens == null) {
+            sens = BigDecimal.valueOf(1e-10); // 或其他合适的小值
+        }
+
         // 计算噪声范围
         BigDecimal noiseRandom = a.multiply(sens);
+
         // 遍历数据集，求加密数据
         List<EncryptedData> res = new ArrayList<>();
         for (BigDecimal data : dataSet) {
             // E(v) = a*v + b + noise
             res.add(new EncryptedData(data, a.multiply(data).add(b).add(BigDecimal.valueOf(random.nextDouble()).multiply(noiseRandom))));
         }
+
         return res;
     }
 
@@ -58,7 +73,7 @@ public class OPE {
         return a.multiply(cond).add(b);
     }
 
-    private class EncryptedData {
+    public class EncryptedData {
         private final BigDecimal originalValue;
         private final BigDecimal encryptedValue;
 
